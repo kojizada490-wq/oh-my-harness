@@ -113,7 +113,7 @@ oh-my-harness init my-project --global
 在包目录执行：
 
 ```bash
-cd /home/wang/xuexi/projects/oh-my-harness/oh-my-harness
+cd oh-my-harness
 npm run check
 npm pack --dry-run
 npm publish

@@ -21,7 +21,7 @@ const CONFIG_TOML_SOURCE = path.join(PACKAGE_ROOT, "config.toml");
 const AGENTS_SOURCE_ROOT = path.join(PACKAGE_ROOT, "agents");
 const AGENTS_BEGIN = "<!-- oh-my-harness:begin -->";
 const AGENTS_END = "<!-- oh-my-harness:end -->";
-const SOURCE_CODEX_HOME_PREFIX = "/home/wang/.codex/";
+const SOURCE_CODEX_HOME_PREFIX = "__OH_MY_HARNESS_CODEX_HOME__/";
 
 type ActionKind =
   | "created"
