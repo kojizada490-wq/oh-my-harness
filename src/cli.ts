@@ -67,6 +67,8 @@ const TEXT = {
     langFlag: "输出语言：zh | en",
     unknownArg: "未知参数",
     missingLang: "缺少语言参数",
+    missingCommand: "缺少命令",
+    initHint: "当前参数不会默认触发 init。请显式使用 `init` 子命令。",
     unknownCommand: "未知命令",
     targetNotDirectory: "目标路径不是目录",
     initTarget: "目标目录:",
@@ -103,7 +105,7 @@ const TEXT = {
     agentTomlExistsNoForce: "agent TOML 已存在，未使用 --force",
     patchAgentToml: "patch 覆盖 agent TOML",
     createAgentToml: "写入 agent TOML",
-    migrationPromptLabel: "后续提示:",
+    migrationPromptLabel: "后续给 prompt 的提示:",
     migrationPrompt:
       "请对比 `AGENTS.md` 与 `agents.back.md`，只迁移仍有价值的项目级规则到新的 `AGENTS.md`，然后清理 `agents.back.md`。",
   },
@@ -121,6 +123,8 @@ const TEXT = {
     langFlag: "Output language: zh | en",
     unknownArg: "Unknown argument",
     missingLang: "Missing language argument",
+    missingCommand: "Missing command",
+    initHint: "These options do not implicitly run init. Please use the `init` subcommand explicitly.",
     unknownCommand: "Unknown command",
     targetNotDirectory: "Target path is not a directory",
     initTarget: "init target:",
@@ -157,7 +161,7 @@ const TEXT = {
     agentTomlExistsNoForce: "agent TOML already exists; --force not set",
     patchAgentToml: "patch agent TOML",
     createAgentToml: "write agent TOML",
-    migrationPromptLabel: "next step:",
+    migrationPromptLabel: "prompt for next step:",
     migrationPrompt:
       "Compare `AGENTS.md` with `agents.back.md`, migrate only still-useful project-level rules into the new `AGENTS.md`, then remove `agents.back.md`.",
   },
@@ -873,6 +877,17 @@ async function main(): Promise<void> {
   const locale = resolveLocale(parsed.lang);
   if (parsed.version) {
     await printVersion();
+    return;
+  }
+
+  const hasStandaloneOptions = parsed.force || parsed.global || parsed.dryRun || parsed.lang !== null;
+
+  if (!parsed.command && hasStandaloneOptions) {
+    console.error(`${formatText(locale, "missingCommand")}: init`);
+    console.error(formatText(locale, "initHint"));
+    console.error("");
+    printUsage(locale);
+    process.exitCode = 1;
     return;
   }
 
