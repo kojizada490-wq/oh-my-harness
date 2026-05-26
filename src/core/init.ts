@@ -174,7 +174,7 @@ async function patchGitignoreFile(
   summary: SummaryEntry[],
 ): Promise<void> {
   const { targetRoot, dryRun } = options;
-  const sourcePath = path.join(TEMPLATE_REPO_ROOT, ".gitignore");
+  const sourcePath = path.join(TEMPLATE_REPO_ROOT, "gitignore.template");
   const targetPath = path.join(targetRoot, ".gitignore");
   const sourceContent = normalizeBlockContent(
     await fs.readFile(sourcePath, "utf8"),
@@ -238,7 +238,7 @@ async function installProjectTemplates(
 
   for (const sourcePath of templateFiles) {
     const relativePath = path.relative(TEMPLATE_REPO_ROOT, sourcePath);
-    if (relativePath === "AGENTS.md" || relativePath === ".gitignore") {
+    if (relativePath === "AGENTS.md" || relativePath === "gitignore.template") {
       continue;
     }
 

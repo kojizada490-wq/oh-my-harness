@@ -1,8 +1,8 @@
 import os from "node:os";
 import path from "node:path";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Box, Text, render, useApp, useInput } from "ink";
-import { Select, TextInput } from "@inkjs/ui";
+import { TextInput } from "@inkjs/ui";
 
 import { performInit } from "../core/init.js";
 import {
@@ -13,6 +13,15 @@ import {
 import { groupSummaryEntries, hasAgentsBackup, ORDERED_KINDS, summaryHeading } from "../core/summary.js";
 import { formatText } from "../core/text.js";
 import type { InitOptions, Locale, SummaryEntry } from "../core/types.js";
+import {
+  BACK_OPTION_VALUE,
+  buildStepOptions,
+  DEFAULT_OPTION_VALUE,
+  EXIT_OPTION_VALUE,
+  isChoiceScreen,
+  RUN_OPTION_VALUE,
+  type WizardChoiceOption,
+} from "./init-wizard-options.js";
 import {
   nextWizardStep,
   previousWizardStep,
@@ -43,13 +52,6 @@ function sectionColor(kind: string): string {
   return "gray";
 }
 
-function defaultOptionLabel(
-  locale: Locale,
-  currentValueLabel: string,
-): string {
-  return `${formatText(locale, "tuiUseDefault")} (${currentValueLabel})`;
-}
-
 function InitWizard({
   initialOptions,
   packageName,
@@ -68,6 +70,7 @@ function InitWizard({
   const [previewSummary, setPreviewSummary] = useState<SummaryEntry[]>([]);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(true);
+  const [choiceIndex, setChoiceIndex] = useState(0);
 
   const close = (): void => {
     onExit();
@@ -76,6 +79,122 @@ function InitWizard({
   const isWideLayout = stdoutWidth >= 120;
   const leftWidth = isWideLayout ? Math.max(42, Math.floor(stdoutWidth * 0.42)) : undefined;
   const rightWidth = isWideLayout ? Math.max(48, stdoutWidth - (leftWidth ?? 0) - 4) : undefined;
+  const stepOptions = useMemo<WizardChoiceOption[]>(
+    () => buildStepOptions(screen, options),
+    [screen, options],
+  );
+
+  useEffect(() => {
+    setChoiceIndex(0);
+  }, [screen]);
+
+  const handleChoice = (value: string): void => {
+    if (screen === "locale") {
+      if (value === EXIT_OPTION_VALUE || value === BACK_OPTION_VALUE) {
+        close();
+        return;
+      }
+      if (value !== DEFAULT_OPTION_VALUE) {
+        setOptions((previous) => ({
+          ...previous,
+          locale: value as Locale,
+        }));
+      }
+      setScreen(nextWizardStep("locale"));
+      return;
+    }
+
+    if (screen === "scope") {
+      if (value === BACK_OPTION_VALUE) {
+        setScreen(previousWizardStep("scope") ?? "target");
+        return;
+      }
+      if (value !== DEFAULT_OPTION_VALUE) {
+        setOptions((previous) => ({
+          ...previous,
+          global: value === "global",
+        }));
+      }
+      setScreen(nextWizardStep("scope"));
+      return;
+    }
+
+    if (screen === "force") {
+      if (value === BACK_OPTION_VALUE) {
+        setScreen(previousWizardStep("force") ?? "scope");
+        return;
+      }
+      if (value !== DEFAULT_OPTION_VALUE) {
+        setOptions((previous) => ({
+          ...previous,
+          force: value === "on",
+        }));
+      }
+      setScreen(nextWizardStep("force"));
+      return;
+    }
+
+    if (screen === "dryRun") {
+      if (value === BACK_OPTION_VALUE) {
+        setScreen(previousWizardStep("dryRun") ?? "force");
+        return;
+      }
+      if (value !== DEFAULT_OPTION_VALUE) {
+        setOptions((previous) => ({
+          ...previous,
+          dryRun: value === "on",
+        }));
+      }
+      setScreen(nextWizardStep("dryRun"));
+      return;
+    }
+
+    if (screen === "confirm") {
+      if (value === BACK_OPTION_VALUE) {
+        setScreen(previousWizardStep("confirm") ?? "dryRun");
+        return;
+      }
+      if (value === EXIT_OPTION_VALUE) {
+        close();
+        return;
+      }
+      if (value !== RUN_OPTION_VALUE) {
+        return;
+      }
+
+      setErrorMessage(null);
+      setSummary([]);
+      setScreen("running");
+      void performInit(options)
+        .then((nextSummary) => {
+          setSummary(nextSummary);
+          setScreen("summary");
+        })
+        .catch((error: unknown) => {
+          setErrorMessage(error instanceof Error ? error.message : String(error));
+          setScreen("summary");
+        });
+    }
+  };
+
+  const renderChoiceList = (
+    title: string,
+    optionsForStep: WizardChoiceOption[],
+  ): React.JSX.Element => (
+    <Box flexDirection="column" width={leftWidth}>
+      <Text>{title}</Text>
+      <Box flexDirection="column" marginTop={1}>
+        {optionsForStep.map((option, index) => {
+          const selected = index === choiceIndex;
+          return (
+            <Text key={option.value} color={selected ? "cyan" : undefined}>
+              {`${selected ? "❯" : " "} ${option.label}`}
+            </Text>
+          );
+        })}
+      </Box>
+    </Box>
+  );
 
   useInput((input, key) => {
     if (input === "q") {
@@ -97,10 +216,30 @@ function InitWizard({
       return;
     }
 
+    if (isChoiceScreen(screen)) {
+      if (key.upArrow) {
+        setChoiceIndex((previous) => Math.max(0, previous - 1));
+        return;
+      }
+
+      if (key.downArrow) {
+        setChoiceIndex((previous) => Math.min(stepOptions.length - 1, previous + 1));
+        return;
+      }
+
+      if (key.return) {
+        const option = stepOptions[choiceIndex];
+        if (option) {
+          handleChoice(option.value);
+        }
+        return;
+      }
+    }
+
     if (screen === "summary" && (input === "q" || key.escape || key.return)) {
       close();
     }
-  });
+  }, { isActive: screen !== "running" });
 
   useEffect(() => {
     let active = true;
@@ -304,36 +443,7 @@ function InitWizard({
 
   const renderStepContent = (): React.JSX.Element | null => {
     if (screen === "locale") {
-      return (
-        <Box flexDirection="column" width={leftWidth}>
-          <Text>{formatText(options.locale, "tuiStepLocale")}</Text>
-          <Select
-            defaultValue="default"
-            options={[
-              {
-                label: defaultOptionLabel(options.locale, options.locale),
-                value: "default",
-              },
-              { label: "zh", value: "zh" },
-              { label: "en", value: "en" },
-              { label: formatText(options.locale, "tuiBack"), value: "back" },
-            ]}
-            onChange={(value) => {
-              if (value === "back") {
-                setScreen(previousWizardStep("locale") ?? "locale");
-                return;
-              }
-              if (value !== "default") {
-                setOptions((previous) => ({
-                  ...previous,
-                  locale: value as Locale,
-                }));
-              }
-              setScreen(nextWizardStep("locale"));
-            }}
-          />
-        </Box>
-      );
+      return renderChoiceList(formatText(options.locale, "tuiStepLocale"), stepOptions);
     }
 
     if (screen === "target") {
@@ -357,126 +467,15 @@ function InitWizard({
     }
 
     if (screen === "scope") {
-      return (
-        <Box flexDirection="column" width={leftWidth}>
-          <Text>{formatText(options.locale, "tuiStepScope")}</Text>
-          <Select
-            defaultValue="default"
-            options={[
-              {
-                label: defaultOptionLabel(
-                  options.locale,
-                  options.global
-                    ? formatText(options.locale, "tuiScopeGlobal")
-                    : formatText(options.locale, "tuiScopeProject"),
-                ),
-                value: "default",
-              },
-              {
-                label: formatText(options.locale, "tuiScopeProject"),
-                value: "project",
-              },
-              {
-                label: formatText(options.locale, "tuiScopeGlobal"),
-                value: "global",
-              },
-              {
-                label: formatText(options.locale, "tuiBack"),
-                value: "back",
-              },
-            ]}
-            onChange={(value) => {
-              if (value === "back") {
-                setScreen(previousWizardStep("scope") ?? "target");
-                return;
-              }
-              if (value !== "default") {
-                setOptions((previous) => ({
-                  ...previous,
-                  global: value === "global",
-                }));
-              }
-              setScreen(nextWizardStep("scope"));
-            }}
-          />
-        </Box>
-      );
+      return renderChoiceList(formatText(options.locale, "tuiStepScope"), stepOptions);
     }
 
     if (screen === "force") {
-      return (
-        <Box flexDirection="column" width={leftWidth}>
-          <Text>{formatText(options.locale, "tuiStepForce")}</Text>
-          <Select
-            defaultValue="default"
-            options={[
-              {
-                label: defaultOptionLabel(
-                  options.locale,
-                  options.force
-                    ? formatText(options.locale, "tuiForceOn")
-                    : formatText(options.locale, "tuiForceOff"),
-                ),
-                value: "default",
-              },
-              { label: formatText(options.locale, "tuiForceOn"), value: "on" },
-              { label: formatText(options.locale, "tuiForceOff"), value: "off" },
-              { label: formatText(options.locale, "tuiBack"), value: "back" },
-            ]}
-            onChange={(value) => {
-              if (value === "back") {
-                setScreen(previousWizardStep("force") ?? "scope");
-                return;
-              }
-              if (value !== "default") {
-                setOptions((previous) => ({
-                  ...previous,
-                  force: value === "on",
-                }));
-              }
-              setScreen(nextWizardStep("force"));
-            }}
-          />
-        </Box>
-      );
+      return renderChoiceList(formatText(options.locale, "tuiStepForce"), stepOptions);
     }
 
     if (screen === "dryRun") {
-      return (
-        <Box flexDirection="column" width={leftWidth}>
-          <Text>{formatText(options.locale, "tuiStepDryRun")}</Text>
-          <Select
-            defaultValue="default"
-            options={[
-              {
-                label: defaultOptionLabel(
-                  options.locale,
-                  options.dryRun
-                    ? formatText(options.locale, "tuiDryRunOn")
-                    : formatText(options.locale, "tuiDryRunOff"),
-                ),
-                value: "default",
-              },
-              { label: formatText(options.locale, "tuiDryRunOn"), value: "on" },
-              { label: formatText(options.locale, "tuiDryRunOff"), value: "off" },
-              { label: formatText(options.locale, "tuiBack"), value: "back" },
-            ]}
-            onChange={(value) => {
-              if (value === "back") {
-                setScreen(previousWizardStep("dryRun") ?? "force");
-                return;
-              }
-              if (value !== "default") {
-                setOptions((previous) => ({
-                  ...previous,
-                  dryRun: value === "on",
-                }));
-              }
-              setScreen(nextWizardStep("dryRun"));
-            }}
-          />
-        </Box>
-      );
+      return renderChoiceList(formatText(options.locale, "tuiStepDryRun"), stepOptions);
     }
 
     if (screen === "confirm") {
@@ -500,36 +499,9 @@ function InitWizard({
               : formatText(options.locale, "tuiDryRunOff")
           }`}</Text>
           <Text>{`${formatText(options.locale, "tuiMenuLocale")}: ${options.locale}`}</Text>
-          <Select
-            options={[
-              { label: formatText(options.locale, "tuiConfirmRun"), value: "run" },
-              { label: formatText(options.locale, "tuiBack"), value: "back" },
-              { label: formatText(options.locale, "tuiMenuExit"), value: "exit" },
-            ]}
-            onChange={(value) => {
-              if (value === "back") {
-                setScreen(previousWizardStep("confirm") ?? "dryRun");
-                return;
-              }
-              if (value === "exit") {
-                close();
-                return;
-              }
-
-              setErrorMessage(null);
-              setSummary([]);
-              setScreen("running");
-              void performInit(options)
-                .then((nextSummary) => {
-                  setSummary(nextSummary);
-                  setScreen("summary");
-                })
-                .catch((error: unknown) => {
-                  setErrorMessage(error instanceof Error ? error.message : String(error));
-                  setScreen("summary");
-                });
-            }}
-          />
+          <Box marginTop={1}>
+            {renderChoiceList(formatText(options.locale, "tuiStepConfirm"), stepOptions)}
+          </Box>
         </Box>
       );
     }
