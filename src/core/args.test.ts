@@ -12,6 +12,7 @@ test("parseArgs parses init flags and project name", () => {
     "--force",
     "--global",
     "--dry-run",
+    "--no-tui",
     "--lang",
     "en",
   ]);
@@ -21,6 +22,7 @@ test("parseArgs parses init flags and project name", () => {
   assert.equal(parsed.force, true);
   assert.equal(parsed.global, true);
   assert.equal(parsed.dryRun, true);
+  assert.equal(parsed.noTui, true);
   assert.equal(parsed.lang, "en");
 });
 
@@ -32,6 +34,7 @@ test("resolveInitOptions keeps locale and resolves target root", () => {
       force: true,
       global: false,
       dryRun: true,
+      noTui: false,
       help: false,
       version: false,
       lang: "zh",
@@ -45,4 +48,3 @@ test("resolveInitOptions keeps locale and resolves target root", () => {
   assert.equal(options.dryRun, true);
   assert.equal(options.targetRoot, path.resolve(process.cwd(), "demo"));
 });
-

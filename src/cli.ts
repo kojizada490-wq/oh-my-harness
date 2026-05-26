@@ -30,11 +30,15 @@ async function main(): Promise<void> {
   }
 
   const hasStandaloneOptions =
-    parsed.force || parsed.global || parsed.dryRun || parsed.lang !== null;
+    parsed.force ||
+    parsed.global ||
+    parsed.dryRun ||
+    parsed.noTui ||
+    parsed.lang !== null;
   const interactive = isInteractiveTerminal();
 
   if (!parsed.command) {
-    if (interactive) {
+    if (interactive && !parsed.noTui) {
       const options = resolveInitOptions({ ...parsed, command: "init" }, locale);
       await runInitWizard(options);
       return;
@@ -54,7 +58,7 @@ async function main(): Promise<void> {
   }
 
   const options = resolveInitOptions(parsed, locale);
-  if (interactive) {
+  if (interactive && !parsed.noTui) {
     await runInitWizard(options);
     return;
   }

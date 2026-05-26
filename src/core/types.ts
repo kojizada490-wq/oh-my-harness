@@ -27,6 +27,7 @@ export type ParsedArgs = {
   force: boolean;
   global: boolean;
   dryRun: boolean;
+  noTui: boolean;
   help: boolean;
   version: boolean;
   lang: Locale | null;

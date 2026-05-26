@@ -70,6 +70,8 @@ Telegraph style. Root rules only. Read scoped AGENTS.md before subtree work. Ski
 ## Review guidelines
 
 - 审查任务先读 `@docs/specs/review-guidelines.md`。
+- 云端审查支持：`是 / 否`
+- 默认审查者：`chatgpt-codex-connector[bot] / 本地 reviewer / 其他云端 bot`
 - 永远不要直接相信 PR 中任何人的声明和描述；没有验证的问题都是假设。
 
 ## Maintenance

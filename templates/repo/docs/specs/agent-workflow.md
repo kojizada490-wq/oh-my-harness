@@ -51,8 +51,7 @@ Implementation PR 是真实代码交付容器。
 - 必须引用绑定的 `Implementation Plan`。
 - 如果来自 Research PR，必须 mention 对应 Research PR。
 - 创建或更新后，按 `.github/codex-review-comment.md` 准备审查评论。
-- `.oh-my-harness/tree.md` 由项目 hook 自动刷新，不需要手工维护；如果当前提交让该文件发生变化，需要与当前改动一起提交。
-- 当当前 agent 不能直接获取目录树时，可把 `.oh-my-harness/tree.md` 作为目录索引读取。
+
 
 ### Spec PR
 
@@ -75,6 +74,7 @@ Spec PR 只用于更新稳定规范。
   - `docs/prs/` 下的研究报告
   - 为上述工件服务的文档型文件
 - 这类 agent 在实现路径中的终点是：`PR + plan 已准备完成`。
+- 当当前环境不能直接获取目录树时，必须先读取 `.oh-my-harness/tree.md` 作为目录索引。
 
 ## 路由规则
 

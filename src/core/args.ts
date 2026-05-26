@@ -8,6 +8,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
   let force = false;
   let global = false;
   let dryRun = false;
+  let noTui = false;
   let help = false;
   let version = false;
   let lang: Locale | null = null;
@@ -46,6 +47,11 @@ export function parseArgs(argv: string[]): ParsedArgs {
       continue;
     }
 
+    if (arg === "--no-tui") {
+      noTui = true;
+      continue;
+    }
+
     if (arg === "--lang") {
       const value = argv[index + 1];
       if (!value) {
@@ -77,6 +83,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     force,
     global,
     dryRun,
+    noTui,
     help,
     version,
     lang,
@@ -98,6 +105,7 @@ export function printUsage(locale: Locale): void {
   console.log(`  -f, --force              ${formatText(locale, "forceFlag")}`);
   console.log(`  -g, --global             ${formatText(locale, "globalFlag")}`);
   console.log(`      --dry-run            ${formatText(locale, "dryRunFlag")}`);
+  console.log(`      --no-tui             ${formatText(locale, "noTuiFlag")}`);
   console.log(`      --lang <zh|en>       ${formatText(locale, "langFlag")}`);
   console.log("");
   console.log(formatText(locale, "notes"));
