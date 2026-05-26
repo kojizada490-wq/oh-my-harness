@@ -65,6 +65,11 @@ oh-my-harness init my-project --force --global --dry-run --lang en
 oh-my-harness init my-project --dry-run </dev/null
 ```
 
+`init` 还会自动完成两件基础初始化：
+
+- 如果目标目录还不是 Git 仓库，则自动执行 `git init`
+- 在目标项目中生成首个 `.oh-my-harness/tree.md`
+
 ## TUI 向导
 
 `init` 向导当前是固定 6 步：

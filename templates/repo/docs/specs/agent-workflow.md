@@ -49,6 +49,7 @@ Implementation PR 是真实变更单元。
 - 必须引用 `docs/harness/plans/YYYY-MM-DD-<slug>-plan.md`。
 - 如果来自 research PR，必须引用对应 PR。
 - 创建或更新后，按 `.github/codex-review-comment.md` 准备审查评论。
+- `.oh-my-harness/tree.md` 由项目 hook 自动刷新，不需要手工维护；如果当前提交让该文件发生变化，需要与当前改动一起提交。
 
 ### Spec PR
 

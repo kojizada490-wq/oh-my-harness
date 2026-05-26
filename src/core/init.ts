@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import { promises as fs, type Dirent } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
 
 import {
@@ -573,13 +574,130 @@ async function installAgentFiles(
   }
 }
 
+function isGitRepository(repoRoot: string): boolean {
+  const result = spawnSync(
+    "git",
+    ["-C", repoRoot, "rev-parse", "--show-toplevel"],
+    {
+      encoding: "utf8",
+    },
+  );
+  return result.status === 0;
+}
+
+async function ensureGitRepository(
+  options: InitOptions,
+  summary: SummaryEntry[],
+): Promise<void> {
+  if (isGitRepository(options.targetRoot)) {
+    return;
+  }
+
+  if (options.dryRun) {
+    summary.push({
+      kind: "created",
+      target: path.join(options.targetRoot, ".git"),
+      detail: formatText(options.locale, "initGitRepository"),
+    });
+    return;
+  }
+
+  const result = spawnSync("git", ["init"], {
+    cwd: options.targetRoot,
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
+    throw new Error(
+      result.stderr?.trim()
+      || result.stdout?.trim()
+      || `git init failed: ${options.targetRoot}`,
+    );
+  }
+
+  summary.push({
+    kind: "created",
+    target: path.join(options.targetRoot, ".git"),
+    detail: formatText(options.locale, "initGitRepository"),
+  });
+}
+
+async function refreshInitialTree(
+  options: InitOptions,
+  summary: SummaryEntry[],
+): Promise<void> {
+  const treePath = path.join(options.targetRoot, ".oh-my-harness", "tree.md");
+  const beforeExists = await pathExists(treePath);
+  const beforeContent = beforeExists
+    ? await fs.readFile(treePath, "utf8")
+    : null;
+
+  if (options.dryRun) {
+    summary.push({
+      kind: beforeExists ? "updated" : "created",
+      target: treePath,
+      detail: beforeExists
+        ? formatText(options.locale, "refreshInitialTree")
+        : formatText(options.locale, "createInitialTree"),
+    });
+    return;
+  }
+
+  const scriptPath = path.join(
+    options.targetRoot,
+    ".codex",
+    "hooks",
+    "tree.mjs",
+  );
+  if (!(await pathExists(scriptPath))) {
+    return;
+  }
+
+  const result = spawnSync(process.execPath, [scriptPath, "--force"], {
+    cwd: options.targetRoot,
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
+    throw new Error(
+      result.stderr?.trim()
+      || result.stdout?.trim()
+      || `tree hook failed: ${scriptPath}`,
+    );
+  }
+
+  const afterExists = await pathExists(treePath);
+  if (!afterExists) {
+    return;
+  }
+  const afterContent = await fs.readFile(treePath, "utf8");
+
+  if (!beforeExists) {
+    summary.push({
+      kind: "created",
+      target: treePath,
+      detail: formatText(options.locale, "createInitialTree"),
+    });
+    return;
+  }
+
+  summary.push({
+    kind: beforeContent === afterContent ? "skipped" : "updated",
+    target: treePath,
+    detail:
+      beforeContent === afterContent
+        ? formatText(options.locale, "initialTreeAlreadyLatest")
+        : formatText(options.locale, "refreshInitialTree"),
+  });
+}
+
 export async function performInit(options: InitOptions): Promise<SummaryEntry[]> {
   const summary: SummaryEntry[] = [];
   await ensureTargetRoot(options, summary);
+  await ensureGitRepository(options, summary);
   await installProjectTemplates(options, summary);
   await installSkills(options, summary);
   await patchCodexConfig(options, summary);
   await installAgentFiles(options, summary);
+  await refreshInitialTree(options, summary);
   return summary;
 }
 
