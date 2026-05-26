@@ -11,7 +11,6 @@ export type PreviewSection = {
 export function buildPreviewSections(
   summary: SummaryEntry[],
   locale: Locale,
-  limitPerKind = 4,
 ): PreviewSection[] {
   const groups = groupSummaryEntries(summary);
   const sections: PreviewSection[] = [];
@@ -25,8 +24,8 @@ export function buildPreviewSections(
     sections.push({
       kind,
       heading: summaryHeading(locale, kind),
-      entries: entries.slice(0, limitPerKind),
-      remainingCount: Math.max(0, entries.length - limitPerKind),
+      entries,
+      remainingCount: 0,
     });
   }
 

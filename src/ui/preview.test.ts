@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { buildPreviewSections } from "./preview.js";
 
-test("buildPreviewSections groups by action kind and truncates per section", () => {
+test("buildPreviewSections groups by action kind and keeps all entries", () => {
   const sections = buildPreviewSections(
     [
       { kind: "created", target: "a" },
@@ -13,16 +13,15 @@ test("buildPreviewSections groups by action kind and truncates per section", () 
       { kind: "patched", target: "p2" },
     ],
     "zh",
-    2,
   );
 
   assert.equal(sections.length, 2);
   assert.equal(sections[0]?.kind, "created");
   assert.deepEqual(
     sections[0]?.entries.map((entry) => entry.target),
-    ["a", "b"],
+    ["a", "b", "c"],
   );
-  assert.equal(sections[0]?.remainingCount, 1);
+  assert.equal(sections[0]?.remainingCount, 0);
   assert.equal(sections[1]?.kind, "patched");
   assert.equal(sections[1]?.remainingCount, 0);
 });

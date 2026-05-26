@@ -16,8 +16,8 @@ import type { InitOptions, Locale, SummaryEntry } from "../core/types.js";
 import {
   BACK_OPTION_VALUE,
   buildStepOptions,
-  DEFAULT_OPTION_VALUE,
   EXIT_OPTION_VALUE,
+  getDefaultChoiceIndex,
   isChoiceScreen,
   RUN_OPTION_VALUE,
   type WizardChoiceOption,
@@ -85,8 +85,8 @@ function InitWizard({
   );
 
   useEffect(() => {
-    setChoiceIndex(0);
-  }, [screen]);
+    setChoiceIndex(getDefaultChoiceIndex(screen, options, stepOptions));
+  }, [screen, options, stepOptions]);
 
   const handleChoice = (value: string): void => {
     if (screen === "locale") {
@@ -94,12 +94,10 @@ function InitWizard({
         close();
         return;
       }
-      if (value !== DEFAULT_OPTION_VALUE) {
-        setOptions((previous) => ({
-          ...previous,
-          locale: value as Locale,
-        }));
-      }
+      setOptions((previous) => ({
+        ...previous,
+        locale: value as Locale,
+      }));
       setScreen(nextWizardStep("locale"));
       return;
     }
@@ -109,12 +107,10 @@ function InitWizard({
         setScreen(previousWizardStep("scope") ?? "target");
         return;
       }
-      if (value !== DEFAULT_OPTION_VALUE) {
-        setOptions((previous) => ({
-          ...previous,
-          global: value === "global",
-        }));
-      }
+      setOptions((previous) => ({
+        ...previous,
+        global: value === "global",
+      }));
       setScreen(nextWizardStep("scope"));
       return;
     }
@@ -124,12 +120,10 @@ function InitWizard({
         setScreen(previousWizardStep("force") ?? "scope");
         return;
       }
-      if (value !== DEFAULT_OPTION_VALUE) {
-        setOptions((previous) => ({
-          ...previous,
-          force: value === "on",
-        }));
-      }
+      setOptions((previous) => ({
+        ...previous,
+        force: value === "on",
+      }));
       setScreen(nextWizardStep("force"));
       return;
     }
@@ -139,12 +133,10 @@ function InitWizard({
         setScreen(previousWizardStep("dryRun") ?? "force");
         return;
       }
-      if (value !== DEFAULT_OPTION_VALUE) {
-        setOptions((previous) => ({
-          ...previous,
-          dryRun: value === "on",
-        }));
-      }
+      setOptions((previous) => ({
+        ...previous,
+        dryRun: value === "on",
+      }));
       setScreen(nextWizardStep("dryRun"));
       return;
     }
@@ -344,7 +336,7 @@ function InitWizard({
   };
 
   const renderPreview = (): React.JSX.Element => {
-    const sections = buildPreviewSections(previewSummary, options.locale, 4);
+    const sections = buildPreviewSections(previewSummary, options.locale);
 
     return (
       <Box marginTop={1} flexDirection="column">
@@ -367,15 +359,6 @@ function InitWizard({
                   {`- ${entry.target}${entry.detail ? ` (${entry.detail})` : ""}`}
                 </Text>
               ))}
-              {section.remainingCount > 0 ? (
-                <Text dimColor>
-                  {formatText(
-                    options.locale,
-                    "tuiPreviewMore",
-                    String(section.remainingCount),
-                  )}
-                </Text>
-              ) : null}
             </Box>
           ))
           : null}

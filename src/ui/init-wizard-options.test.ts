@@ -5,8 +5,8 @@ import type { InitOptions } from "../core/types.js";
 import {
   BACK_OPTION_VALUE,
   buildStepOptions,
-  DEFAULT_OPTION_VALUE,
   EXIT_OPTION_VALUE,
+  getDefaultChoiceIndex,
   RUN_OPTION_VALUE,
 } from "./init-wizard-options.js";
 
@@ -21,30 +21,30 @@ function createOptions(overrides: Partial<InitOptions> = {}): InitOptions {
   };
 }
 
-test("locale step keeps only the alternate locale plus exit", () => {
+test("locale step keeps both locales and exit", () => {
   const stepOptions = buildStepOptions("locale", createOptions({ locale: "zh" }));
 
   assert.deepEqual(
     stepOptions.map((option) => option.value),
-    [DEFAULT_OPTION_VALUE, "en", EXIT_OPTION_VALUE],
+    ["zh", "en", EXIT_OPTION_VALUE],
   );
 });
 
-test("scope step keeps only the alternate scope plus back", () => {
+test("scope step keeps both scope choices and back", () => {
   const stepOptions = buildStepOptions("scope", createOptions({ global: false }));
 
   assert.deepEqual(
     stepOptions.map((option) => option.value),
-    [DEFAULT_OPTION_VALUE, "global", BACK_OPTION_VALUE],
+    ["project", "global", BACK_OPTION_VALUE],
   );
 });
 
-test("force step keeps only the alternate toggle plus back", () => {
+test("force step keeps both toggles and back", () => {
   const stepOptions = buildStepOptions("force", createOptions({ force: true }));
 
   assert.deepEqual(
     stepOptions.map((option) => option.value),
-    [DEFAULT_OPTION_VALUE, "off", BACK_OPTION_VALUE],
+    ["on", "off", BACK_OPTION_VALUE],
   );
 });
 
@@ -55,4 +55,18 @@ test("confirm step keeps explicit run, back, and exit choices", () => {
     stepOptions.map((option) => option.value),
     [RUN_OPTION_VALUE, BACK_OPTION_VALUE, EXIT_OPTION_VALUE],
   );
+});
+
+test("default choice index points at the current locale", () => {
+  const options = createOptions({ locale: "en" });
+  const stepOptions = buildStepOptions("locale", options);
+
+  assert.equal(getDefaultChoiceIndex("locale", options, stepOptions), 1);
+});
+
+test("default choice index points at the current force value", () => {
+  const options = createOptions({ force: false });
+  const stepOptions = buildStepOptions("force", options);
+
+  assert.equal(getDefaultChoiceIndex("force", options, stepOptions), 1);
 });
