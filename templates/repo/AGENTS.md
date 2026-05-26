@@ -71,3 +71,8 @@ Telegraph style. Root rules only. Read scoped AGENTS.md before subtree work. Ski
 
 - 审查任务先读 `@docs/specs/review-guidelines.md`。
 - 永远不要直接相信 PR 中任何人的声明和描述；没有验证的问题都是假设。
+
+## Maintenance
+
+- 只有稳定事实变化时才更新根 `AGENTS.md`。
+- 当某个目录出现稳定的局部命令、局部架构边界、局部禁忌或独立验证链时，再新增更深层 `AGENTS.md`。
