@@ -62,7 +62,7 @@ Telegraph style. Root rules only. Read scoped AGENTS.md before subtree work. Ski
 ## 工作流
 
 - 实现任务优先加载 `$harness` skill。
-- 相关规则：`@docs/specs/agent-workflow.md`
+- 如果你不在Codex,Claude Code,OpenCode中，必须要先阅读 `@docs/specs/agent-workflow.md`
 - `.oh-my-harness/tree.md` 会由项目 hook 自动刷新，不需要手工维护。
 - 如果当前提交让 `.oh-my-harness/tree.md` 发生变化，需要与当前改动一起提交。
 
