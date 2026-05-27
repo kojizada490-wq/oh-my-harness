@@ -34,9 +34,11 @@
 
 - **把只读工作移出本地 Codex**：先在 `ChatGPT`、`Grok` 等 Web 平台结合 `GitHub connector` 阅读仓库、收敛问题、整理 plan，再把本地 Codex 留给真正的实现。参考：[Connecting GitHub to ChatGPT](https://help.openai.com/en/articles/11145903-connecting-github-to-chatgpt)
 - **把 plan 和实现解耦**：plan 可以来自 Research PR、Issue、外部分析或人工整理；本地 Codex 只负责接手并实现。
-- **让云端和本地额度分工**：研究、plan 和 review 尽量放到更低成本的环境里；本地 Codex 专注实现、验证和交付。参考：[Codex pricing](https://developers.openai.com/codex/pricing)、[Codex code review in GitHub](https://developers.openai.com/codex/integrations/github)
+- **让云端和本地额度分工**：研究、plan 和 review 尽量放到更低成本的环境里；本地 Codex 专注实现和交付。参考：[Codex pricing](https://developers.openai.com/codex/pricing)、[Codex code review in GitHub](https://developers.openai.com/codex/integrations/github)
 
 ![云端研究与本地实现分工](https://raw.githubusercontent.com/DoraemonHugU/oh-my-harness/main/docs/images/workflow-overview.png)
+
+> GPT Plus 订阅具有额外的20-50次的/5h 云端审查额度。且该额度不和codex额度共享。
 
 ## 工作流示例
 
