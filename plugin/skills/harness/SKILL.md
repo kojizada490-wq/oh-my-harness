@@ -250,18 +250,21 @@ Research PR、`main` / `master` 或明显不匹配任务的分支，都不直接
 ##### 等待评论
 ```bash
 for i in {1..20}; do
-  {等待操作}
+  {等待操作bot 先发出`Issue Comment`如果有问题会携带 `PR Review`}
   sleep 30
 done
 ```
 `👀` 出现后继续等待结果评论；云端审查通常在 20 分钟内返回。若 30 s 内没有出现 `👀 reaction`，重发 comment；重发后仍未出现时，视为 reviewer 不可用，回退到本地审查并告知用户。
 
+> gh api /repos/{xxxx}/{xxx}/issues/xxx/comments --jq '.[] | select(.user.login == "chatgpt-codex-connector[bot]") | {id, body: .body[0:500]}'
 
 ### 修复规则
 
 加载`receiving-code-review` skill 处理审查反馈.
 
 ## 3. 交付
+
+如有: 完成任务后,更新 实现 pr 的描述(依然引用plan等信息),再进行交付汇报. 其余plan等引用信息保持不变. 
 
 最终交付用结构化 Markdown，汇报事实结果，不输出大段 diff。
 

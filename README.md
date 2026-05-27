@@ -307,3 +307,7 @@ npm run check
 npm pack --dry-run
 npm publish
 ```
+
+## 致谢
+- 感谢 [linux.do](https://linux.do/) 社区在开发过程中提供的反馈、讨论和灵感。
+- 感谢 `superpowers` 和 `mattpocock` 社区提供的优秀的skill。
