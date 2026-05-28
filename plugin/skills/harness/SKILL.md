@@ -233,7 +233,7 @@ Research PR、`main` / `master` 或明显不匹配任务的分支，都不直接
 
 ### 云端 PR 审查
 
-在支持云端审查的仓库中，按项目要求使用 `.github/codex-review-comment.md` 的评论格式（必须带有 `@codex review` 前缀），建立或更新 PR 后提交评论并调用 @codex 进行 review。
+在支持云端审查的仓库中，按项目要求使用 `.github/codex-review-comment.md` 的评论格式（必须带有 `@codex review`），建立或更新 PR 后提交评论并调用 @codex 进行 review。
 
 #### 接受云端审查评论
 

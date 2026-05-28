@@ -4,6 +4,7 @@
 
 - 本项目采用 PR-first agent 工作流。GitHub PR 是任务上下文、审查和追踪的主要单元。
 - 本文件主要服务于不能直接进入本地 `harness` 的 agent，例如通过 GitHub connector / 云端项目接入的 agent。
+- 如果你是`codex`,`claude code`或者`open code`等本地 agent，请跳过该文件。
 - 如果当前环境可以直接使用本地 `harness`，实现类任务从一开始就应进入 `harness`；本文件只作为 artifact 关系、云端边界和交接规则参考。
 
 ## 必须遵循

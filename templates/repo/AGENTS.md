@@ -58,7 +58,6 @@ Telegraph style. Root rules only. Read scoped AGENTS.md before subtree work. Ski
 
 - 偏好队列中目标为项目级 `AGENTS.md` 的 note 项：`...`
 
-
 ## 工作流
 
 - 实现任务优先加载 `$harness` skill。
@@ -66,10 +65,9 @@ Telegraph style. Root rules only. Read scoped AGENTS.md before subtree work. Ski
 - `.oh-my-harness/tree.md` 会由项目 hook 自动刷新，不需要手工维护。
 - 如果当前提交让 `.oh-my-harness/tree.md` 发生变化，需要与当前改动一起提交。
 
-
 ## Review guidelines
 
-- 审查任务先读 `@docs/specs/review-guidelines.md`。
+- 只有审查者需要且必须先读 `@docs/specs/review-guidelines.md`。
 - 云端审查支持：`是 / 否`
 - 默认审查者：`chatgpt-codex-connector[bot] / 本地 reviewer / 其他云端 bot`
 - 永远不要直接相信 PR 中任何人的声明和描述；没有验证的问题都是假设。
